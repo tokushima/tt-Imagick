@@ -5,3 +5,4 @@
 .project
 
 /vendor/
+/test.php
