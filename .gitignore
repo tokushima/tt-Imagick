@@ -1,0 +1,7 @@
+/cmdman.phar
+/composer.phar
+.buildpath
+.settings/
+.project
+
+/vendor/

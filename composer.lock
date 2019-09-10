@@ -1,0 +1,56 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "73f4de2f43069311c667938c763f6628",
+    "packages": [
+        {
+            "name": "tokushima/ebi",
+            "version": "3.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/tokushima/ebi.git",
+                "reference": "a8d85ff0f406d7d64f0f66ca5021b1d767e989b1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/tokushima/ebi/zipball/a8d85ff0f406d7d64f0f66ca5021b1d767e989b1",
+                "reference": "a8d85ff0f406d7d64f0f66ca5021b1d767e989b1",
+                "shasum": ""
+            },
+            "require": {
+                "ext-mbstring": "*",
+                "php": ">=7.1.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "ebi\\": "lib/ebi/"
+                },
+                "files": [
+                    "main.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "tokushima"
+                }
+            ],
+            "time": "2019-08-26T16:37:25+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": [],
+    "platform-dev": []
+}

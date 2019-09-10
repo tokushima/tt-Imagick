@@ -1,0 +1,11 @@
+{
+	"name" : "tokushima/tt-imagick",
+	"autoload" : {
+		"psr-4" : {
+			"tt\\" : "lib/tt/"
+		}
+	},
+	"require" : {
+		"tokushima/ebi" : ">=3.0.0"
+	}
+}
