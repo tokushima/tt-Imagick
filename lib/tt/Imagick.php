@@ -34,10 +34,13 @@ class Imagick{
 	 * @param string $string
 	 * @return \tt\Imagick
 	 */
-	public static function readImageBlob($string){
+	public static function read($string){
 		$self = new static(__FILE__);
 		$self->canvas = new \Imagick();
 		
+		if($self->canvas->readImageBlob($string) !== true){
+			throw \InvalidArgumentException('invalid image');
+		}
 		return $self;
 	}
 	
@@ -49,7 +52,7 @@ class Imagick{
 	 * @param string $filename
 	 * @return \tt\Imagick
 	 */
-	public static function filled_rectangle($width,$height,$color){
+	public static function create($width,$height,$color='#FFFFFF'){
 		$self = new static(__FILE__);
 		$self->canvas = new \Imagick();
 		$self->canvas->newImage($width,$height,$color);
@@ -85,6 +88,29 @@ class Imagick{
 		}
 		$this->canvas->setImageFormat($format);
 		print($this->canvas);
+	}
+	
+	/**
+	 * 画像を返す
+	 * @param string $format
+	 * @return string
+	 */
+	public function get($format='jpeg'){
+		$format = strtolower($format);
+		
+		switch($format){
+			case 'png':
+				header('Content-Type: image/png');
+				break;
+			case 'gif':
+				header('Content-Type: image/gif');
+				break;
+			default:
+				header('Content-Type: image/jpeg');
+				$format = 'jpeg';
+		}
+		$this->canvas->setImageFormat($format);
+		return $this->canvas->getImageBlob();
 	}
 	
 	
@@ -144,6 +170,17 @@ class Imagick{
 		$ch = $h * $a;
 		
 		$this->canvas->scaleImage($cw,$ch);
+		
+		return $this;
+	}
+	
+	/**
+	 * 指定した幅と高さに合うようにリサイズとトリミングをする
+	 * @param integer $width
+	 * @param integer $height
+	 */
+	public function crop_resize($width,$height){
+		$this->resize($width,$height)->crop($width, $height);
 		
 		return $this;
 	}
