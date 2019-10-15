@@ -202,12 +202,14 @@ class Imagick{
 	 * @param integer $x
 	 * @param integer $y
 	 * @param \tt\Imagick $img
+	 * @param integer $composite imagick::COMPOSITE_*
 	 * @return \tt\Imagick
+	 * @see https://www.php.net/manual/ja/imagick.constants.php
 	 */
-	public function merge($x,$y,\tt\Imagick $img){
+	public function merge($x,$y,\tt\Imagick $img,$composite=\Imagick::COMPOSITE_OVER){
 		$this->canvas->compositeImage(
 			$img->canvas,
-			\Imagick::COMPOSITE_OVER,
+			$composite,
 			$x,
 			$y
 		);
