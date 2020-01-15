@@ -1,6 +1,16 @@
 <?php
 namespace tt;
-
+/**
+ * Imagick
+ * 
+ * Install:
+ *  brew install imagemagick 
+ *  brew install gs
+ *  pecl install imagick
+ * 
+ * @author tokushima
+ *
+ */
 class Imagick{
 	/**
 	 * 縦向き
@@ -244,5 +254,17 @@ class Imagick{
 		}else{
 			return self::ORIENTATION_LANDSCAPE;
 		}
+	}
+	
+	/**
+	 * オプションを設定する
+	 * @param string $k
+	 * @param mixed $v
+	 * @return \tt\Imagick
+	 * @see https://www.php.net/manual/ja/imagick.setoption.php
+	 */
+	public function set_option($k,$v){
+		$this->canvas->setOption($k,$v);
+		return $this;
 	}
 }
