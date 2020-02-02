@@ -267,4 +267,18 @@ class Imagick{
 		$this->canvas->setOption($k,$v);
 		return $this;
 	}
+	
+	/**
+	 * 差分の抽出
+	 * @param \tt\Imagick $image
+	 * @return \tt\Imagick
+	 */
+	public function diff(\tt\Imagick $image){
+		$result = $this->canvas->compareImages($image->canvas, \Imagick::METRIC_MEANSQUAREERROR);
+		
+		$diff = new static(__FILE__);
+		$diff->canvas = $result[0];
+		
+		return $diff;
+	}
 }
