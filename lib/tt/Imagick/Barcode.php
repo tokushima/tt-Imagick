@@ -1,5 +1,5 @@
 <?php
-namespace tt\imagick;
+namespace tt\Imagick;
 /**
  * バーコード
  * @author tokushima

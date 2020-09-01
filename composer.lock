@@ -4,25 +4,25 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "73f4de2f43069311c667938c763f6628",
+    "content-hash": "a3693a8e1d2980d4d1a49ece0441aa0a",
     "packages": [
         {
             "name": "tokushima/ebi",
-            "version": "3.0.0",
+            "version": "3.2.13",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tokushima/ebi.git",
-                "reference": "a8d85ff0f406d7d64f0f66ca5021b1d767e989b1"
+                "reference": "8d423a535cc4debd9c4a6a93ba51d9d3e09aeec5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tokushima/ebi/zipball/a8d85ff0f406d7d64f0f66ca5021b1d767e989b1",
-                "reference": "a8d85ff0f406d7d64f0f66ca5021b1d767e989b1",
+                "url": "https://api.github.com/repos/tokushima/ebi/zipball/8d423a535cc4debd9c4a6a93ba51d9d3e09aeec5",
+                "reference": "8d423a535cc4debd9c4a6a93ba51d9d3e09aeec5",
                 "shasum": ""
             },
             "require": {
                 "ext-mbstring": "*",
-                "php": ">=7.1.0"
+                "php": ">=7.3.0"
             },
             "type": "library",
             "autoload": {
@@ -42,7 +42,7 @@
                     "name": "tokushima"
                 }
             ],
-            "time": "2019-08-26T16:37:25+00:00"
+            "time": "2020-09-01T13:17:40+00:00"
         }
     ],
     "packages-dev": [],

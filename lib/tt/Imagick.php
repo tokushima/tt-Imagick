@@ -50,7 +50,7 @@ class Imagick{
 		$self->canvas = new \Imagick();
 		
 		if($self->canvas->readImageBlob($string) !== true){
-			throw \InvalidArgumentException('invalid image');
+			throw \ebi\exception\ImageException('invalid image');
 		}
 		return $self;
 	}
@@ -66,8 +66,12 @@ class Imagick{
 	public static function create($width,$height,$color='#FFFFFF'){
 		$self = new static(__FILE__);
 		$self->canvas = new \Imagick();
-		$self->canvas->newImage($width,$height,$color);
 		
+		try{
+			$self->canvas->newImage($width,$height,$color);
+		}catch (\ImagickException $e){
+			throw new \ebi\exception\ImageException();
+		}
 		return $self;
 	}
 	
@@ -76,6 +80,9 @@ class Imagick{
 	 * @param string $filename
 	 */
 	public function write($filename){
+		if(!is_dir(dirname($filename))){
+			\ebi\Util::mkdir(dirname($filename));
+		}
 		$this->canvas->writeImage($filename);
 	}
 	
@@ -314,7 +321,7 @@ class Imagick{
 	 * @return \tt\Imagick
 	 */
 	public function line($sx,$sy,$ex,$ey,$color,$thickness=1,$alpha=0){
-		$draw = $this->get_draw($color,$thickness,true,$alpha);
+		$draw = $this->get_draw($color,$thickness,false,$alpha);
 		$draw->line($sx,$sy,$ex,$ey);
 		$this->canvas->drawImage($draw);
 		
@@ -325,17 +332,17 @@ class Imagick{
 	 * 楕円を描画する
 	 * @param integer $cx 中心点x
 	 * @param integer $cy 中心点y
-	 * @param integer $width
-	 * @param integer $height
-	 * @param string $color
+	 * @param integer $width 幅直径
+	 * @param integer $height 高さ直径
+	 * @param string $color 
 	 * @param number $thickness 線の太さ (塗り潰し時無効)
 	 * @param boolean $fill 塗りつぶす
 	 * @param number $alpha 0〜127 (透明) PNGでのみ有効
 	 * @return \tt\Imagick
 	 */
 	public function ellipse($cx,$cy,$width,$height,$color,$thickness=1,$fill=false,$alpha=0){
-		$draw = $this->get_draw($color,$thickness,$fill,$alpha);
-		$draw->ellipse($cx,$cy,$width,$height,0,360);
+		$draw = $this->get_draw($color,$thickness/2,$fill,$alpha);
+		$draw->ellipse($cx,$cy,$width/2,$height/2,0,360);
 		$this->canvas->drawImage($draw);
 		
 		return $this;
@@ -352,13 +359,14 @@ class Imagick{
 			}
 		}else{
 			$draw->setFillOpacity(0);
-		}
-		if($thickness > 0){
-			$draw->setStrokeColor(new \ImagickPixel($color));
-			$draw->setStrokeWidth($thickness);
 			
-			if($alpha > 0){
-				$draw->setStrokeOpacity(round($alpha/127,3));
+			if($thickness > 0){
+				$draw->setStrokeColor(new \ImagickPixel($color));
+				$draw->setStrokeWidth($thickness);
+				
+				if($alpha > 0){
+					$draw->setStrokeOpacity(round($alpha/127,3));
+				}
 			}
 		}
 		return $draw;
@@ -387,20 +395,14 @@ class Imagick{
 	 * @param number $font_point_size フォントサイズ
 	 * @param string $font_name set_fontで指定したフォント名
 	 * @param string $text テキスト
-	 * @param number $angle 回転軸は左下
 	 * @return \tt\Imagick
 	 */
-	public function text($x,$y,$font_color,$font_point_size,$font_name,$text,$angle=0){
-		if(!isset(self::$font_path[$font_name])){
-			throw new \ebi\exception\UndefinedException('undefined font `'.$font_name.'`');
-		}
-		$draw = new \ImagickDraw();
+	public function text($x,$y,$font_color,$font_point_size,$font_name,$text){
+		$font_point_size = ceil($font_point_size);
+		
+		$draw = $this->get_text_draw($font_point_size, $font_name);
 		$draw->setStrokeColor($font_color);
 		$draw->setFillColor($font_color);
-		
-		$draw->setFont(self::$font_path[$font_name]);
-		$draw->setFontSize($font_point_size);
-		
 		$draw->annotation($x,$y + $font_point_size,$text);
 		
 		$this->canvas->drawImage($draw);
@@ -412,23 +414,28 @@ class Imagick{
 	 * @param number $font_point_size フォントサイズ
 	 * @param string $font_name フォント名
 	 * @param string $text テキスト
-	 * @param number $angle 回転軸は左下
 	 * @throws \ebi\exception\UndefinedException
 	 * @return number[] [width,height]
 	 */
-	public function get_text_size($font_point_size,$font_name,$text,$angle=0){
-		if(!isset(self::$font_path[$font_name])){
-			throw new \ebi\exception\UndefinedException('undefined font `'.$font_name.'`');
-		}
-		
-		$draw = new \ImagickDraw();
-		$draw->setFont(self::$font_path[$font_name]);
-		$draw->setFontSize($font_point_size);
-		
+	public function get_text_size($font_point_size,$font_name,$text){
+		$draw = $this->get_text_draw($font_point_size, $font_name);
 		$metrics = $this->canvas->queryFontMetrics($draw,$text);
 		$w = $metrics['textWidth'];
 		$h = $metrics['textHeight'];
 		
 		return [$w,$h];
+	}
+	
+	private function get_text_draw($font_point_size,$font_name){
+		if(!isset(self::$font_path[$font_name])){
+			throw new \ebi\exception\UndefinedException('undefined font `'.$font_name.'`');
+		}
+		$font_point_size = ceil($font_point_size * 1.3);
+		
+		$draw = new \ImagickDraw();
+		$draw->setFont(self::$font_path[$font_name]);
+		$draw->setFontSize($font_point_size);
+		
+		return $draw;
 	}
 }

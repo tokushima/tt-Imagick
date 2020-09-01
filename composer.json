@@ -6,6 +6,6 @@
 		}
 	},
 	"require" : {
-		"tokushima/ebi" : ">=3.0.0"
+		"tokushima/ebi" : ">=3.2.13"
 	}
 }
