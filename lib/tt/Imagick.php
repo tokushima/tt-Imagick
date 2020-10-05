@@ -291,6 +291,23 @@ class Imagick{
 	}
 	
 	/**
+	 * 点を描画する
+	 * @param array $xys [[x,y]]の２次元配列
+	 * @param string $color
+	 */
+	public function point(array $xys,$color){
+		$draw = new \ImagickDraw();
+		$draw->setFillColor(new \ImagickPixel($color));
+		
+		foreach($xys as $xy){
+			$draw->point($xy[0],$xy[1]);
+		}
+		$this->canvas->drawImage($draw);
+		
+		return $this;
+	}
+	
+	/**
 	 * 矩形を描画する
 	 * @param integer $x
 	 * @param integer $y
