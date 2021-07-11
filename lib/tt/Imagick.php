@@ -3,11 +3,6 @@ namespace tt;
 /**
  * Imagick
  * 
- * Install:
- *  brew install imagemagick 
- *  brew install gs
- *  pecl install imagick
- * 
  * @author tokushima
  *
  */
