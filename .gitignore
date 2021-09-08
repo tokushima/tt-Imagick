@@ -1,9 +1,0 @@
-/cmdman.phar
-/composer.phar
-.buildpath
-.settings/
-.project
-
-/vendor/
-/test.php
-/work/

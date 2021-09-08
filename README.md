@@ -15,7 +15,13 @@ peclでimagickのインストール
 pecl install imagick
 ```
 
-上記で入らない場合
+pcre2が無いと言われたら
+
+```
+ln -s /opt/homebrew/Cellar/pcre2/10.37_1/include/pcre2.h /opt/homebrew/Cellar/php/8.0.9/include/php/ext/pcre/pcre2.h
+```
+
+peclで入らない場合
 
 ```
 $ git clone https://github.com/Imagick/imagick

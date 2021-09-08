@@ -1,5 +1,5 @@
 <?php
-namespace tt;
+namespace tt\image;
 /**
  * Imagick
  * 
@@ -56,12 +56,16 @@ class Imagick{
 	 * @param integer $height
 	 * @param string $color
 	 * @param string $filename
-	 * @return \tt\Imagick
+	 * @return \tt\image\Imagick
 	 */
-	public static function create($width,$height,$color='#FFFFFF'){
+	public static function create($width,$height,$color=null){
 		$self = new static(__FILE__);
 		$self->canvas = new \Imagick();
 		
+		if(empty($color)){
+			$color = '#FFFFFF';
+		}
+
 		try{
 			$self->canvas->newImage($width,$height,$color);
 		}catch (\ImagickException $e){
@@ -404,7 +408,7 @@ class Imagick{
 	 * @param integer $x 左上座標
 	 * @param integer $y　左上座標
 	 * @param string $font_color #FFFFFF
-	 * @param number $font_point_size フォントサイズ
+	 * @param float $font_point_size フォントサイズ
 	 * @param string $font_name set_fontで指定したフォント名
 	 * @param string $text テキスト
 	 * @return \tt\Imagick
