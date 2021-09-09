@@ -38,7 +38,7 @@ class Imagick{
 	/**
 	 * バイナリ文字列から画像を読み込む
 	 * @param string $string
-	 * @return \tt\Imagick
+	 * @return \tt\image\Imagick
 	 */
 	public static function read($string){
 		$self = new static(__FILE__);
@@ -137,7 +137,7 @@ class Imagick{
 	 * @param integer $height 抽出する高さ
 	 * @param integer $x 抽出する領域の左上の X 座標
 	 * @param integer $y 抽出する領域の左上の Y 座標
-	 * @return \tt\Imagick
+	 * @return \tt\image\Imagick
 	 */
 	public function crop($width,$height,$x=null,$y=null){
 		list($w,$h) = $this->get_size();
@@ -167,7 +167,7 @@ class Imagick{
 	 * 画像のサイズを変更する
 	 * @param integer $width 変更後の幅
 	 * @param integer $height 変更後の高さ
-	 * @return \tt\Imagick
+	 * @return \tt\image\Imagick
 	 */
 	public function resize($width,$height=null){
 		list($w,$h) = $this->get_size();
@@ -206,7 +206,7 @@ class Imagick{
 	 * 回転
 	 * @param integer $angle 角度
 	 * @param string $background_color
-	 * @return \tt\Imagick
+	 * @return \tt\image\Imagick
 	 */
 	public function rotate($angle,$background_color='#000000'){
 		$this->canvas->rotateImage($background_color,$angle);
@@ -218,12 +218,12 @@ class Imagick{
 	 * マージ
 	 * @param integer $x
 	 * @param integer $y
-	 * @param \tt\Imagick $img
+	 * @param \tt\image\Imagick $img
 	 * @param integer $composite imagick::COMPOSITE_*
-	 * @return \tt\Imagick
+	 * @return \tt\image\Imagick
 	 * @see https://www.php.net/manual/ja/imagick.constants.php
 	 */
-	public function merge($x,$y,\tt\Imagick $img,$composite=\Imagick::COMPOSITE_OVER){
+	public function merge($x,$y,\tt\image\Imagick $img,$composite=\Imagick::COMPOSITE_OVER){
 		$this->canvas->compositeImage(
 			$img->canvas,
 			$composite,
@@ -267,7 +267,7 @@ class Imagick{
 	 * オプションを設定する
 	 * @param string $k
 	 * @param mixed $v
-	 * @return \tt\Imagick
+	 * @return \tt\image\Imagick
 	 * @see https://www.php.net/manual/ja/imagick.setoption.php
 	 */
 	public function set_option($k,$v){
@@ -277,10 +277,10 @@ class Imagick{
 	
 	/**
 	 * 差分の抽出
-	 * @param \tt\Imagick $image
-	 * @return \tt\Imagick
+	 * @param \tt\image\Imagick $image
+	 * @return \tt\image\Imagick
 	 */
-	public function diff(\tt\Imagick $image){
+	public function diff(\tt\image\Imagick $image){
 		$result = $this->canvas->compareImages($image->canvas, \Imagick::METRIC_MEANSQUAREERROR);
 		
 		$diff = new static(__FILE__);
@@ -316,7 +316,7 @@ class Imagick{
 	 * @param integer $thickness 線の太さ (塗り潰し時無効)
 	 * @param boolean $fill 塗りつぶす
 	 * @param integer $alpha 0〜127 (透明) PNGでのみ有効
-	 * @return \tt\Imagick
+	 * @return \tt\image\Imagick
 	 */
 	public function rectangle($x,$y,$width,$height,$color,$thickness=1,$fill=false,$alpha=0){
 		$draw = $this->get_draw($color,$thickness,$fill,$alpha);
@@ -334,7 +334,7 @@ class Imagick{
 	 * @param string $color
 	 * @param number $thickness 線の太さ (塗り潰し時無効)
 	 * @param number $alpha 0〜127 (透明) PNGでのみ有効
-	 * @return \tt\Imagick
+	 * @return \tt\image\Imagick
 	 */
 	public function line($sx,$sy,$ex,$ey,$color,$thickness=1,$alpha=0){
 		$draw = $this->get_draw($color,$thickness,false,$alpha);
@@ -354,7 +354,7 @@ class Imagick{
 	 * @param number $thickness 線の太さ (塗り潰し時無効)
 	 * @param boolean $fill 塗りつぶす
 	 * @param number $alpha 0〜127 (透明) PNGでのみ有効
-	 * @return \tt\Imagick
+	 * @return \tt\image\Imagick
 	 */
 	public function ellipse($cx,$cy,$width,$height,$color,$thickness=1,$fill=false,$alpha=0){
 		$draw = $this->get_draw($color,$thickness/2,$fill,$alpha);
@@ -411,7 +411,7 @@ class Imagick{
 	 * @param float $font_point_size フォントサイズ
 	 * @param string $font_name set_fontで指定したフォント名
 	 * @param string $text テキスト
-	 * @return \tt\Imagick
+	 * @return \tt\image\Imagick
 	 */
 	public function text($x,$y,$font_color,$font_point_size,$font_name,$text){
 		$font_point_size = ceil($font_point_size);
