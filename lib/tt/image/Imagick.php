@@ -454,4 +454,70 @@ class Imagick{
 		
 		return $draw;
 	}
+
+	/**
+	 * 画像の情報
+	 *  integer width
+	 *  integer height
+	 *  integer orientation 画像の向き 1: PORTRAIT, 2: LANDSCAPE, 3: SQUARE
+	 *  string mime 画像形式のMIMEタイプ
+	 *  integer bits
+	 *  integer channels 1: GRAY, 3: RGB, 4: CMYK
+	 *  boolean broken 画像ファイルとして破損しているか
+	 *  
+	 * @param string $filename
+	 * @return mixed{}
+	 * @see http://jp2.php.net/manual/ja/function.getimagesize.php
+	 * @see http://jp2.php.net/manual/ja/function.image-type-to-mime-type.php
+	 */
+	public static function get_info($filename){
+		if(!is_file($filename)){
+			throw new \ebi\exception\AccessDeniedException($filename.' not found');
+		}
+		$info = getimagesize($filename);
+		$mime = $info['mime'] ?? null;
+		$broken = null;
+		
+		if($mime == 'image/jpeg'){
+			$broken = (['ffd8','ffd9'] != self::check_file_type($filename, 2, 2));
+		}else if($mime == 'image/png'){
+			$broken = (['89504e470d0a1a0a','0000000049454e44ae426082'] != self::check_file_type($filename, 8, 12));
+		}else if($mime == 'image/gif'){
+			$broken = (['474946','3b'] != self::check_file_type($filename, 3, 1));
+		}
+		
+		return [
+			'width'=>$info[0],
+			'height'=>$info[1],
+			'orientation'=>self::judge_orientation($info[0],$info[1]),
+			'mime'=>$mime,
+			'bits'=>$info['bits'] ?? null,
+			'channels'=>$info['channels'] ?? null,
+			'broken'=>$broken,
+		];
+	}
+
+	private static function check_file_type($filename,$header,$footer){
+		$fp = fopen($filename,'rb');
+		$a = unpack('H*',fread($fp,$header));
+		fseek($fp,$footer * -1,SEEK_END);
+		$b = unpack('H*',fread($fp,$footer));
+		fclose($fp);
+		return [($a[1] ?? null),($b[1] ?? null)];
+	}
+	
+	private static function judge_orientation($w,$h){
+		if($w > 0 && $h > 0){
+			$d = $h / $w;
+			
+			if($d <= 1.02 && $d >= 0.98){
+				return self::ORIENTATION_SQUARE;
+			}else if($d > 1){
+				return self::ORIENTATION_PORTRAIT;
+			}
+			return self::ORIENTATION_LANDSCAPE;
+		}
+		return null;
+	}
+
 }
