@@ -6,31 +6,31 @@ namespace tt\image;
  *
  */
 class Barcode{
-	protected $data = [];
-	protected $type = [];
+	public $data = [];
+	public $type = [];
 	
-	protected $color;
-	protected $bar_height;
-	protected $module_width;
+	public $bar_height;
+	public $module_width;
 	
-	public function __construct($data, $type, $opt){
+	public function __construct($data, $type, $bar_height, $module_width){
 		$this->data = $data;
 		$this->type = $type;
-		$this->setopt($opt);
+		$this->bar_height = \tt\image\Calc::mm2px($bar_height);
+		$this->module_width = \tt\image\Calc::mm2px($module_width);
 	}
 	
 	/**
 	 * NW-7 (CODABAR)
 	 * @param string $code A0123456789A
-	 * @throws \ebi\exception\InvalidArgumentException
+	 * @throws \tt\image\exception\InvalidArgumentException
 	 * @return $this
 	 */
 	public static function NW7($code){
 		if(!preg_match('/^[0123456789ABCD\-\$:\/\.\+]+$/i',$code)){
-			throw new \ebi\exception\InvalidArgumentException('detected invalid characters');
+			throw new \tt\image\exception\InvalidArgumentException('detected invalid characters');
 		}
 		if(!preg_match('/^[ABCD]/i',$code) || !preg_match('/[ABCD]$/i',$code)){
-			throw new \ebi\exception\InvalidArgumentException('Start / Stop code is not [A, B, C, D]');
+			throw new \tt\image\exception\InvalidArgumentException('Start / Stop code is not [A, B, C, D]');
 		}
 		$bits = [
 			'0'=>[1,-1,1,-1,1,-3,3,-1],
@@ -61,16 +61,13 @@ class Barcode{
 			$data = array_merge($data,$bits[$fcode[$i]]);
 		}
 		$data[] = -11; // quietzone
-		return new static([$data], [], [
-			'bar_height'=>\ebi\Calc::mm2px(10),
-			'module_width'=>\ebi\Calc::mm2px(0.6),
-		]);
+		return new static([$data], [], 10, 0.6);
 	}
 	
 	/**
 	 * EAN13 (JAN13) 4549995186550
 	 * @param string $code
-	 * @throws \ebi\exception\InvalidArgumentException
+	 * @throws \tt\image\exception\InvalidArgumentException
 	 * @return $this
 	 */
 	public static function EAN13($code){
@@ -130,24 +127,21 @@ class Barcode{
 		$code = sprintf('%012d',$code);
 		
 		if(!ctype_digit($code)){
-			throw new \ebi\exception\InvalidArgumentException('detected invalid characters');
+			throw new \tt\image\exception\InvalidArgumentException('detected invalid characters');
 		}
 		$code = (strlen($code) > 12) ? $code : $code.$get_checkdigit_JAN($code);
-		return new static($get_data_JAN($code), [], [
-			'bar_height'=>\ebi\Calc::mm2px(22.86),
-			'module_width'=>\ebi\Calc::mm2px(0.33),
-		]);
+		return new static($get_data_JAN($code), [], 22.86, 0.33);
 	}
 	
 	/**
 	 * CODE39
 	 * @param string $code 1234567890ABCDEF
-	 * @throws \ebi\exception\InvalidArgumentException
+	 * @throws \tt\image\exception\InvalidArgumentException
 	 * @return $this
 	 */	
 	public static function CODE39($code){
 		if(!preg_match('/^[\w\-\. \$\/\+%]+$/i',$code)){
-			throw new \ebi\exception\InvalidArgumentException('detected invalid characters');
+			throw new \tt\image\exception\InvalidArgumentException('detected invalid characters');
 		}
 		
 		$pattern = [
@@ -172,10 +166,7 @@ class Barcode{
 			$data[] = -1; // gap
 		}
 		$data[] = -10; // quietzone
-		return new static([$data], [], [
-			'bar_height'=>\ebi\Calc::mm2px(10),
-			'module_width'=>\ebi\Calc::mm2px(0.33),
-		]);
+		return new static([$data], [], 10, 0.33);
 	}
 	
 	/**
@@ -209,7 +200,7 @@ class Barcode{
 		$zip = str_replace('-','',$zip);
 		
 		if(!ctype_digit($zip)){
-			throw new \ebi\exception\InvalidArgumentException('detected invalid characters');
+			throw new \tt\image\exception\InvalidArgumentException('detected invalid characters');
 		}
 		if(!empty($address)){
 			$address = mb_convert_kana($address,'as');
@@ -279,13 +270,10 @@ class Barcode{
 		array_push($data,-1,1,-1,1,-1,-1);
 		array_push($type,0,3,0,1,0,0);
 		
-		return new static([$data], [$type], [
-			'bar_height'=>\ebi\Calc::mm2px(3.6),
-			'module_width'=>\ebi\Calc::mm2px(0.6),		
-		]);
+		return new static([$data], [$type], 3.6, 0.6);
 	}
 	
-	protected function bar_type($i,$j){
+	public function bar_type($i,$j){
 		if(!empty($this->type)){
 			$div_bar = $this->bar_height / 3;
 
@@ -301,13 +289,7 @@ class Barcode{
 				default:
 			}
 		}
-		return [0,$this->bar_height];
-	}
-
-	protected function setopt($opt){
-		$this->color = $opt['color'] ?? '#000000';
-		$this->bar_height = $opt['bar_height'] ?? $this->bar_height;
-		$this->module_width = $opt['module_width'] ?? $this->module_width;
+		return [0, $this->bar_height];
 	}
 
 	/**
@@ -319,21 +301,47 @@ class Barcode{
 	 *  string $bgcolor #FFFFFF
 	 * 	number $bar_height バーコードの高さ
 	 * 	number $module_width 1モジュールの幅
-	 * 
-	 * @return \tt\image\Imagick
 	 */
-	public function image($opt=[]){
-		if($this->data instanceof \tt\image\Imagick){
-			return $this->data;
+	public function write($filename, $opt=[]){
+		if(isset($opt['bar_height'])){
+			$this->bar_height = $opt['bar_height'];
 		}
-		$this->setopt($opt);
+		
+		$bgcolor = $opt['bgcolor'] ?? null;
+		$color = $opt['color'] ?? '#000000';
+
+		$color2rgb = function($color_code){
+			if(substr($color_code,0,1) == '#'){
+				$color_code = substr($color_code,1);
+			}	
+			$r = hexdec(substr($color_code,0,2));
+			$g = hexdec(substr($color_code,2,2));
+			$b = hexdec(substr($color_code,4,2));
+			return [$r, $g, $b];
+		};
+
 		$w = 0;
 		foreach($this->data as $d){
 			foreach($d as $bw){
-				$w += ($bw < 0) ? ($bw * -1) * $this->module_width : ($bw * $this->module_width);
+				$w += ($bw < 0) ? ($bw * -1) : $bw;
 			}
 		}
-		$image = \tt\image\Imagick::create($w, $this->bar_height, $opt['bgcolor'] ?? null);
+		
+		$canvas = imagecreatetruecolor($w * $this->module_width, $this->bar_height);
+		$alpha = 0;
+		
+		if(empty($bgcolor)){
+			$bgcolor = '#FF0000';
+			imagealphablending($canvas, false);
+			imagesavealpha($canvas, true);
+			$alpha = 127;
+		}
+		list($r,$g,$b) = $color2rgb($bgcolor);
+		imagefill($canvas, 0, 0, imagecolorallocatealpha($canvas, $r, $g, $b, $alpha));
+		
+		list($r,$g,$b) = $color2rgb($color);
+		$c = imagecolorallocate($canvas, $r, $g, $b);
+		imagesetthickness($canvas, 1);
 		
 		$x = 0;
 		foreach($this->data as $i => $d){
@@ -343,65 +351,19 @@ class Barcode{
 				}else{
 					list($sy,$ey) = $this->bar_type($i,$j);
 					
-					for($j=0;$j<$bw;$j++){
+					for($k=0;$k<$bw * $this->module_width;$k++){
 						$x++;
-						$image->line($x, $sy, $x, $ey, $this->color);
+						
+						imageline($canvas,$x, $sy, $x, $ey, $c);
 					}
 				}
 			}
 		}
-		return $image;
-	}
-	
-	/**
-	 * 登録されたデータ [data[], type[]]
-	 * @return array [number[],$number[]]
-	 */
-	public function raw(){
-		return [$this->data,$this->type];
-	}
-
-	/**
-	 * QR Code
-	 * @param string $content
-	 * @param float $size mm
-	 * @param integer $padding
-	 * @param string $level L, M, H, Q
-	 * @return \tt\image\Imagick
-	 */
-	public static function QRCode($content, $size, $padding=4, $level='L'){
-		$renderer = new \BaconQrCode\Renderer\ImageRenderer(
-			new \BaconQrCode\Renderer\RendererStyle\RendererStyle(
-				\ebi\Calc::mm2px($size, 72),
-				$padding,
-				null,
-				null,
-				\BaconQrCode\Renderer\RendererStyle\Fill::uniformColor(
-					new \BaconQrCode\Renderer\Color\Rgb(255,255,255),
-					new \BaconQrCode\Renderer\Color\Rgb(0, 0, 0)
-				)
-			),
-			new \BaconQrCode\Renderer\Image\ImagickImageBackEnd()
-		);
+		imagepng($canvas, $filename);
+		imagedestroy($canvas);
 		
-		switch(\strtoupper($level)){
-			case 'L': $level = \BaconQrCode\Common\ErrorCorrectionLevel::L(); break;
-			case 'M': $level = \BaconQrCode\Common\ErrorCorrectionLevel::M(); break;
-			case 'H': $level = \BaconQrCode\Common\ErrorCorrectionLevel::Q(); break;
-			case 'Q': $level = \BaconQrCode\Common\ErrorCorrectionLevel::H(); break;
-		}
-		
-		$writer = new \BaconQrCode\Writer($renderer);
-
-		return new static(\tt\image\Imagick::read(
-			$writer->writeString(
-				$content,
-				\BaconQrCode\Encoder\Encoder::DEFAULT_BYTE_MODE_ECODING,
-				$level
-			)
-		), [], []);
+		return $filename;
 	}
-
 }
 
 

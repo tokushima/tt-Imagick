@@ -45,7 +45,7 @@ class Imagick{
 		$self->canvas = new \Imagick();
 		
 		if($self->canvas->readImageBlob($string) !== true){
-			throw \ebi\exception\ImageException('invalid image');
+			throw new \tt\image\exception\ImageException('invalid image');
 		}
 		return $self;
 	}
@@ -69,7 +69,7 @@ class Imagick{
 		try{
 			$self->canvas->newImage($width,$height,$color);
 		}catch (\ImagickException $e){
-			throw new \ebi\exception\ImageException();
+			throw new \tt\image\exception\ImageException();
 		}
 		return $self;
 	}
@@ -77,10 +77,11 @@ class Imagick{
 	/**
 	 * ファイルに書き出す
 	 * @param string $filename
+	 * @param string png, gif, jpeg
 	 */
-	public function write($filename){
-		if(!is_dir(dirname($filename))){
-			\ebi\Util::mkdir(dirname($filename));
+	public function write($filename, $format=null){
+		if(!empty($format)){
+			$this->canvas->setImageFormat($format);
 		}
 		$this->canvas->writeImage($filename);
 	}
@@ -398,7 +399,7 @@ class Imagick{
 			$font_name = preg_replace('/^(.+)\..+$/','\\1',basename($font_path));
 		}
 		if(!is_file($font_path)){
-			throw new \ebi\exception\NotFoundException('font not found');
+			throw new \tt\image\exception\AccessDeniedException($font_name.' access denied');
 		}
 		self::$font_path[$font_name] = $font_path;
 	}
@@ -417,8 +418,8 @@ class Imagick{
 		$font_point_size = ceil($font_point_size);
 		
 		$draw = $this->get_text_draw($font_point_size, $font_name);
-		$draw->setStrokeColor($font_color);
-		$draw->setFillColor($font_color);
+		$draw->setStrokeColor(new \ImagickPixel($font_color));
+		$draw->setFillColor(new \ImagickPixel($font_color));
 		$draw->annotation($x,$y + $font_point_size,$text);
 		
 		$this->canvas->drawImage($draw);
@@ -430,7 +431,6 @@ class Imagick{
 	 * @param number $font_point_size フォントサイズ
 	 * @param string $font_name フォント名
 	 * @param string $text テキスト
-	 * @throws \ebi\exception\UndefinedException
 	 * @return number[] [width,height]
 	 */
 	public function get_text_size($font_point_size,$font_name,$text){
@@ -444,7 +444,7 @@ class Imagick{
 	
 	private function get_text_draw($font_point_size,$font_name){
 		if(!isset(self::$font_path[$font_name])){
-			throw new \ebi\exception\UndefinedException('undefined font `'.$font_name.'`');
+			throw new \tt\image\exception\UndefinedException('undefined font `'.$font_name.'`');
 		}
 		$font_point_size = ceil($font_point_size * 1.3);
 		
@@ -472,7 +472,7 @@ class Imagick{
 	 */
 	public static function get_info($filename){
 		if(!is_file($filename)){
-			throw new \ebi\exception\AccessDeniedException($filename.' not found');
+			throw new \tt\image\exception\AccessDeniedException($filename.' not found');
 		}
 		$info = getimagesize($filename);
 		$mime = $info['mime'] ?? null;

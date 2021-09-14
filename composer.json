@@ -4,10 +4,5 @@
 		"psr-4": {
 			"tt\\image\\": "lib/tt/image/"
 		}
-	},
-	"require" : {
-		"tokushima/ebi": ">=3.2.20",
-		"bacon/bacon-qr-code": ">=2.0.3",
-		"ext-imagick": "*"
 	}
 }
