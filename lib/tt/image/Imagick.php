@@ -24,15 +24,15 @@ class Imagick{
 	const ORIENTATION_SQUARE = 3;
 	
 	private static $font_path = [];
-	private $canvas;
+	private $image;
 	
 	public function __construct($filename){
 		if($filename != __FILE__){
-			$this->canvas = new \Imagick($filename);
+			$this->image = new \Imagick($filename);
 		}
 	}
 	public function __destruct(){
-		$this->canvas->clear();
+		$this->image->clear();
 	}
 	
 	/**
@@ -42,9 +42,9 @@ class Imagick{
 	 */
 	public static function read($string){
 		$self = new static(__FILE__);
-		$self->canvas = new \Imagick();
+		$self->image = new \Imagick();
 		
-		if($self->canvas->readImageBlob($string) !== true){
+		if($self->image->readImageBlob($string) !== true){
 			throw new \tt\image\exception\ImageException('invalid image');
 		}
 		return $self;
@@ -60,14 +60,14 @@ class Imagick{
 	 */
 	public static function create($width,$height,$color=null){
 		$self = new static(__FILE__);
-		$self->canvas = new \Imagick();
+		$self->image = new \Imagick();
 		
 		if(empty($color)){
 			$color = '#FFFFFF';
 		}
 
 		try{
-			$self->canvas->newImage($width,$height,$color);
+			$self->image->newImage($width,$height,$color);
 		}catch (\ImagickException $e){
 			throw new \tt\image\exception\ImageException();
 		}
@@ -75,15 +75,25 @@ class Imagick{
 	}
 	
 	/**
+	 * @return \Imagick
+	 */
+	public function image(){
+		return $this->image;
+	}
+
+	/**
 	 * ファイルに書き出す
 	 * @param string $filename
 	 * @param string png, gif, jpeg
 	 */
 	public function write($filename, $format=null){
 		if(!empty($format)){
-			$this->canvas->setImageFormat($format);
+			$this->image->setImageFormat($format);
 		}
-		$this->canvas->writeImage($filename);
+		if(!is_dir(dirname($filename))){
+			mkdir(dirname($filename), 0777, true);
+		}
+		$this->image->writeImage($filename);
 	}
 	
 	/**
@@ -104,8 +114,8 @@ class Imagick{
 				header('Content-Type: image/jpeg');
 				$format = 'jpeg';
 		}
-		$this->canvas->setImageFormat($format);
-		print($this->canvas);
+		$this->image->setImageFormat($format);
+		print($this->image);
 	}
 	
 	/**
@@ -127,8 +137,8 @@ class Imagick{
 				header('Content-Type: image/jpeg');
 				$format = 'jpeg';
 		}
-		$this->canvas->setImageFormat($format);
-		return $this->canvas->getImageBlob();
+		$this->image->setImageFormat($format);
+		return $this->image->getImageBlob();
 	}
 	
 	
@@ -159,7 +169,7 @@ class Imagick{
 		if($y < 0){
 			$y = $h + $y;
 		}
-		$this->canvas->cropImage($width,$height,$x,$y);
+		$this->image->cropImage($width,$height,$x,$y);
 		
 		return $this;
 	}
@@ -187,7 +197,7 @@ class Imagick{
 		$cw = $w * $a;
 		$ch = $h * $a;
 		
-		$this->canvas->scaleImage($cw,$ch);
+		$this->image->scaleImage($cw,$ch);
 		
 		return $this;
 	}
@@ -210,7 +220,7 @@ class Imagick{
 	 * @return \tt\image\Imagick
 	 */
 	public function rotate($angle,$background_color='#000000'){
-		$this->canvas->rotateImage($background_color,$angle);
+		$this->image->rotateImage($background_color,$angle);
 		
 		return $this;
 	}
@@ -225,8 +235,8 @@ class Imagick{
 	 * @see https://www.php.net/manual/ja/imagick.constants.php
 	 */
 	public function merge($x,$y,\tt\image\Imagick $img,$composite=\Imagick::COMPOSITE_OVER){
-		$this->canvas->compositeImage(
-			$img->canvas,
+		$this->image->compositeImage(
+			$img->imagick,
 			$composite,
 			$x,
 			$y
@@ -240,8 +250,8 @@ class Imagick{
 	 * @return integer[]
 	 */
 	public function get_size(){
-		$w = $this->canvas->getImageWidth();
-		$h = $this->canvas->getImageHeight();
+		$w = $this->image->getImageWidth();
+		$h = $this->image->getImageHeight();
 		
 		return [$w,$h];
 	}
@@ -272,7 +282,7 @@ class Imagick{
 	 * @see https://www.php.net/manual/ja/imagick.setoption.php
 	 */
 	public function set_option($k,$v){
-		$this->canvas->setOption($k,$v);
+		$this->image->setOption($k,$v);
 		return $this;
 	}
 	
@@ -282,10 +292,10 @@ class Imagick{
 	 * @return \tt\image\Imagick
 	 */
 	public function diff(\tt\image\Imagick $image){
-		$result = $this->canvas->compareImages($image->canvas, \Imagick::METRIC_MEANSQUAREERROR);
+		$result = $this->image->compareImages($image->imagick, \Imagick::METRIC_MEANSQUAREERROR);
 		
 		$diff = new static(__FILE__);
-		$diff->canvas = $result[0];
+		$diff->imagick = $result[0];
 		
 		return $diff;
 	}
@@ -302,7 +312,7 @@ class Imagick{
 		foreach($xys as $xy){
 			$draw->point($xy[0],$xy[1]);
 		}
-		$this->canvas->drawImage($draw);
+		$this->image->drawImage($draw);
 		
 		return $this;
 	}
@@ -322,7 +332,7 @@ class Imagick{
 	public function rectangle($x,$y,$width,$height,$color,$thickness=1,$fill=false,$alpha=0){
 		$draw = $this->get_draw($color,$thickness,$fill,$alpha);
 		$draw->rectangle($x,$y,$x + $width,$y + $height);
-		$this->canvas->drawImage($draw);
+		$this->image->drawImage($draw);
 		
 		return $this;
 	}
@@ -340,7 +350,7 @@ class Imagick{
 	public function line($sx,$sy,$ex,$ey,$color,$thickness=1,$alpha=0){
 		$draw = $this->get_draw($color,$thickness,false,$alpha);
 		$draw->line($sx,$sy,$ex,$ey);
-		$this->canvas->drawImage($draw);
+		$this->image->drawImage($draw);
 		
 		return $this;
 	}
@@ -360,7 +370,7 @@ class Imagick{
 	public function ellipse($cx,$cy,$width,$height,$color,$thickness=1,$fill=false,$alpha=0){
 		$draw = $this->get_draw($color,$thickness/2,$fill,$alpha);
 		$draw->ellipse($cx,$cy,$width/2,$height/2,0,360);
-		$this->canvas->drawImage($draw);
+		$this->image->drawImage($draw);
 		
 		return $this;
 	}
@@ -422,7 +432,7 @@ class Imagick{
 		$draw->setFillColor(new \ImagickPixel($font_color));
 		$draw->annotation($x,$y + $font_point_size,$text);
 		
-		$this->canvas->drawImage($draw);
+		$this->image->drawImage($draw);
 		return $this;
 	}
 	
@@ -435,7 +445,7 @@ class Imagick{
 	 */
 	public function get_text_size($font_point_size,$font_name,$text){
 		$draw = $this->get_text_draw($font_point_size, $font_name);
-		$metrics = $this->canvas->queryFontMetrics($draw,$text);
+		$metrics = $this->image->queryFontMetrics($draw,$text);
 		$w = $metrics['textWidth'];
 		$h = $metrics['textHeight'];
 		
