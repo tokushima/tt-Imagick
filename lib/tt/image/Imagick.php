@@ -229,14 +229,14 @@ class Imagick{
 	 * マージ
 	 * @param integer $x
 	 * @param integer $y
-	 * @param \tt\image\Imagick $img
+	 * @param \tt\image\Imagick $imagick
 	 * @param integer $composite imagick::COMPOSITE_*
 	 * @return \tt\image\Imagick
 	 * @see https://www.php.net/manual/ja/imagick.constants.php
 	 */
-	public function merge($x,$y,\tt\image\Imagick $img,$composite=\Imagick::COMPOSITE_OVER){
+	public function merge($x,$y,\tt\image\Imagick $imagick,$composite=\Imagick::COMPOSITE_OVER){
 		$this->image->compositeImage(
-			$img->imagick,
+			$imagick->image,
 			$composite,
 			$x,
 			$y
@@ -288,14 +288,14 @@ class Imagick{
 	
 	/**
 	 * 差分の抽出
-	 * @param \tt\image\Imagick $image
+	 * @param \tt\image\Imagick $imagick
 	 * @return \tt\image\Imagick
 	 */
-	public function diff(\tt\image\Imagick $image){
-		$result = $this->image->compareImages($image->imagick, \Imagick::METRIC_MEANSQUAREERROR);
+	public function diff(\tt\image\Imagick $imagick){
+		$result = $this->image->compareImages($imagick->image, \Imagick::METRIC_MEANSQUAREERROR);
 		
 		$diff = new static(__FILE__);
-		$diff->imagick = $result[0];
+		$diff->image = $result[0];
 		
 		return $diff;
 	}
