@@ -1,50 +1,32 @@
 <?php
 namespace tt\image;
-/**
- * Imagick
- * 
- * @author tokushima
- *
- */
+
 class Imagick{
-	/**
-	 * 縦向き
-	 * @var integer
-	 */
 	const ORIENTATION_PORTRAIT = 1;
-	/**
-	 * 横向き
-	 * @var integer
-	 */
 	const ORIENTATION_LANDSCAPE = 2;
-	/**
-	 * 正方形
-	 * @var integer
-	 */
 	const ORIENTATION_SQUARE = 3;
 	
 	private static $font_path = [];
 	private $image;
 	
-	public function __construct($filename){
+	public function __construct(string $filename){
 		if($filename != __FILE__){
 			$this->image = new \Imagick($filename);
 		}
 	}
+
 	public function __destruct(){
 		$this->image->clear();
 	}
 	
 	/**
 	 * バイナリ文字列から画像を読み込む
-	 * @param string $string
-	 * @return \tt\image\Imagick
 	 */
-	public static function read($string){
+	public static function read(string $data): self{
 		$self = new static(__FILE__);
 		$self->image = new \Imagick();
 		
-		if($self->image->readImageBlob($string) !== true){
+		if($self->image->readImageBlob($data) !== true){
 			throw new \tt\image\exception\ImageException('invalid image');
 		}
 		return $self;
@@ -52,13 +34,8 @@ class Imagick{
 	
 	/**
 	 * 塗りつぶした矩形を作成する
-	 * @param integer $width
-	 * @param integer $height
-	 * @param string $color
-	 * @param string $filename
-	 * @return \tt\image\Imagick
 	 */
-	public static function create($width,$height,$color=null){
+	public static function create(int $width, int $height, ?string $color=null): self{
 		$self = new static(__FILE__);
 		$self->image = new \Imagick();
 		
@@ -74,19 +51,15 @@ class Imagick{
 		return $self;
 	}
 	
-	/**
-	 * @return \Imagick
-	 */
-	public function image(){
+	public function image(): \Imagick{
 		return $this->image;
 	}
 
 	/**
 	 * ファイルに書き出す
-	 * @param string $filename
-	 * @param string png, gif, jpeg
+	 * format: png, gif, jpeg
 	 */
-	public function write($filename, $format=null){
+	public function write(string $filename, ?string $format=null): void{
 		if(!empty($format)){
 			$this->image->setImageFormat($format);
 		}
@@ -98,9 +71,9 @@ class Imagick{
 	
 	/**
 	 * 画像を出力する
-	 * @param string $format
+	 * format: png, gif, jpeg
 	 */
-	public function output($format='jpeg'){
+	public function output(string $format='jpeg'): void{
 		$format = strtolower($format);
 		
 		switch($format){
@@ -120,10 +93,9 @@ class Imagick{
 	
 	/**
 	 * 画像を返す
-	 * @param string $format
-	 * @return string
+	 * format: png, gif, jpeg
 	 */
-	public function get($format='jpeg'){
+	public function get(string $format='jpeg'): string{
 		$format = strtolower($format);
 		
 		switch($format){
@@ -144,13 +116,8 @@ class Imagick{
 	
 	/**
 	 * 画像の一部を抽出する
-	 * @param integer $width 抽出する幅
-	 * @param integer $height 抽出する高さ
-	 * @param integer $x 抽出する領域の左上の X 座標
-	 * @param integer $y 抽出する領域の左上の Y 座標
-	 * @return \tt\image\Imagick
 	 */
-	public function crop($width,$height,$x=null,$y=null){
+	public function crop(int $width, int $height, ?int $x=null, ?int $y=null): self{
 		list($w,$h) = $this->get_size();
 		
 		if($width >= $w && $height >= $h){
@@ -176,11 +143,8 @@ class Imagick{
 	
 	/**
 	 * 画像のサイズを変更する
-	 * @param integer $width 変更後の幅
-	 * @param integer $height 変更後の高さ
-	 * @return \tt\image\Imagick
 	 */
-	public function resize($width,$height=null){
+	public function resize(?int $width, ?int $height=null): self{
 		list($w,$h) = $this->get_size();
 		$rw = empty($width) ? 1 : $width;
 		$rh = empty($height) ? 1 : $height;
@@ -204,10 +168,8 @@ class Imagick{
 	
 	/**
 	 * 指定した幅と高さに合うようにリサイズとトリミングをする
-	 * @param integer $width
-	 * @param integer $height
 	 */
-	public function crop_resize($width,$height){
+	public function crop_resize(int $width, int $height): self{
 		$this->resize($width,$height)->crop($width, $height);
 		
 		return $this;
@@ -215,26 +177,18 @@ class Imagick{
 	
 	/**
 	 * 回転
-	 * @param integer $angle 角度
-	 * @param string $background_color
-	 * @return \tt\image\Imagick
 	 */
-	public function rotate($angle,$background_color='#000000'){
+	public function rotate(int $angle, string $background_color='#000000'): self{
 		$this->image->rotateImage($background_color,$angle);
-		
+
 		return $this;
 	}
 	
 	/**
 	 * マージ
-	 * @param integer $x
-	 * @param integer $y
-	 * @param \tt\image\Imagick $imagick
-	 * @param integer $composite imagick::COMPOSITE_*
-	 * @return \tt\image\Imagick
 	 * @see https://www.php.net/manual/ja/imagick.constants.php
 	 */
-	public function merge($x,$y,\tt\image\Imagick $imagick,$composite=\Imagick::COMPOSITE_OVER){
+	public function merge(int $x, int $y, \tt\image\Imagick $imagick, int $composite=\Imagick::COMPOSITE_OVER): self{
 		$this->image->compositeImage(
 			$imagick->image,
 			$composite,
@@ -246,10 +200,9 @@ class Imagick{
 	
 	
 	/**
-	 * サイズ
-	 * @return integer[]
+	 * サイズ(w, h)
 	 */
-	public function get_size(){
+	public function get_size(): array{
 		$w = $this->image->getImageWidth();
 		$h = $this->image->getImageHeight();
 		
@@ -258,9 +211,8 @@ class Imagick{
 	
 	/**
 	 * 画像の向き
-	 * @return  integer
 	 */
-	public function get_orientation(){
+	public function get_orientation(): int{
 		list($w,$h) = $this->get_size();
 		
 		$d = $h / $w;
@@ -276,22 +228,18 @@ class Imagick{
 	
 	/**
 	 * オプションを設定する
-	 * @param string $k
 	 * @param mixed $v
-	 * @return \tt\image\Imagick
 	 * @see https://www.php.net/manual/ja/imagick.setoption.php
 	 */
-	public function set_option($k,$v){
+	public function set_option(string $k, $v): self{
 		$this->image->setOption($k,$v);
 		return $this;
 	}
 	
 	/**
 	 * 差分の抽出
-	 * @param \tt\image\Imagick $imagick
-	 * @return \tt\image\Imagick
 	 */
-	public function diff(\tt\image\Imagick $imagick){
+	public function diff(self $imagick): self{
 		$result = $this->image->compareImages($imagick->image, \Imagick::METRIC_MEANSQUAREERROR);
 		
 		$diff = new static(__FILE__);
@@ -302,10 +250,9 @@ class Imagick{
 	
 	/**
 	 * 点を描画する
-	 * @param array $xys [[x,y]]の２次元配列
-	 * @param string $color
+	 * xys: [[x,y]]の２次元配列
 	 */
-	public function point(array $xys,$color){
+	public function point(array $xys, string $color): self{
 		$draw = new \ImagickDraw();
 		$draw->setFillColor(new \ImagickPixel($color));
 		
@@ -319,17 +266,11 @@ class Imagick{
 	
 	/**
 	 * 矩形を描画する
-	 * @param integer $x
-	 * @param integer $y
-	 * @param integer $width
-	 * @param integer $height
-	 * @param string $color
-	 * @param integer $thickness 線の太さ (塗り潰し時無効)
-	 * @param boolean $fill 塗りつぶす
-	 * @param integer $alpha 0〜127 (透明) PNGでのみ有効
-	 * @return \tt\image\Imagick
+	 * thickness: 線の太さ (塗り潰し時無効)
+	 * fill: 塗りつぶす
+	 * alpha: 0〜127 (透明) PNGでのみ有効
 	 */
-	public function rectangle($x,$y,$width,$height,$color,$thickness=1,$fill=false,$alpha=0){
+	public function rectangle(int $x, int $y, int $width, int $height, string $color, float $thickness=1, bool $fill=false, int $alpha=0): self{
 		$draw = $this->get_draw($color,$thickness,$fill,$alpha);
 		$draw->rectangle($x,$y,$x + $width,$y + $height);
 		$this->image->drawImage($draw);
@@ -338,16 +279,10 @@ class Imagick{
 	}
 	/**
 	 * 線を描画
-	 * @param integer $sx 始点x
-	 * @param integer $sy 始点y
-	 * @param integer $ex 終点x
-	 * @param integer $ey 終点y
-	 * @param string $color
-	 * @param number $thickness 線の太さ (塗り潰し時無効)
-	 * @param number $alpha 0〜127 (透明) PNGでのみ有効
-	 * @return \tt\image\Imagick
+	 * thickness: 線の太さ
+	 * alpha: 0〜127 (透明) PNGでのみ有効
 	 */
-	public function line($sx,$sy,$ex,$ey,$color,$thickness=1,$alpha=0){
+	public function line(int $sx, int $sy, int $ex, int $ey, string $color, float $thickness=1, int $alpha=0){
 		$draw = $this->get_draw($color,$thickness,false,$alpha);
 		$draw->line($sx,$sy,$ex,$ey);
 		$this->image->drawImage($draw);
@@ -357,17 +292,11 @@ class Imagick{
 	
 	/**
 	 * 楕円を描画する
-	 * @param integer $cx 中心点x
-	 * @param integer $cy 中心点y
-	 * @param integer $width 幅直径
-	 * @param integer $height 高さ直径
-	 * @param string $color 
-	 * @param number $thickness 線の太さ (塗り潰し時無効)
-	 * @param boolean $fill 塗りつぶす
-	 * @param number $alpha 0〜127 (透明) PNGでのみ有効
-	 * @return \tt\image\Imagick
+	 * thickness: 線の太さ (塗り潰し時無効)
+	 * fill: 塗りつぶす
+	 * alpha: 0〜127 (透明) PNGでのみ有効
 	 */
-	public function ellipse($cx,$cy,$width,$height,$color,$thickness=1,$fill=false,$alpha=0){
+	public function ellipse(int $cx, int $cy, int $width, int $height, string $color, float $thickness=1, bool $fill=false, int $alpha=0): self{
 		$draw = $this->get_draw($color,$thickness/2,$fill,$alpha);
 		$draw->ellipse($cx,$cy,$width/2,$height/2,0,360);
 		$this->image->drawImage($draw);
@@ -375,7 +304,7 @@ class Imagick{
 		return $this;
 	}
 	
-	private function get_draw($color,$thickness=1,$fill=false,$alpha=0){
+	private function get_draw(string $color, float $thickness=1, bool $fill=false, int $alpha=0): \ImagickDraw{
 		$draw = new \ImagickDraw();
 		
 		if($fill){
@@ -400,11 +329,9 @@ class Imagick{
 	}
 	
 	/**
-	 * フォントファイルパスに名前を設定する
-	 * @param string $font_path ttfファイルパス
-	 * @param string $font_name フォント名
+	 * フォントファイル(ttf)パスに名前を設定する
 	 */
-	public static function set_font($font_path,$font_name=null){
+	public static function set_font(string $font_path, ?string $font_name=null): void{
 		if(empty($font_name)){
 			$font_name = preg_replace('/^(.+)\..+$/','\\1',basename($font_path));
 		}
@@ -416,15 +343,8 @@ class Imagick{
 	
 	/**
 	 * テキストを画像に書き込む
-	 * @param integer $x 左上座標
-	 * @param integer $y　左上座標
-	 * @param string $font_color #FFFFFF
-	 * @param float $font_point_size フォントサイズ
-	 * @param string $font_name set_fontで指定したフォント名
-	 * @param string $text テキスト
-	 * @return \tt\image\Imagick
 	 */
-	public function text($x,$y,$font_color,$font_point_size,$font_name,$text){
+	public function text(int $x, int $y, string $font_color, float $font_point_size, string $font_name, string $text): self{
 		$font_point_size = ceil($font_point_size);
 		
 		$draw = $this->get_text_draw($font_point_size, $font_name);
@@ -438,12 +358,8 @@ class Imagick{
 	
 	/**
 	 * テキストの幅と高さ
-	 * @param number $font_point_size フォントサイズ
-	 * @param string $font_name フォント名
-	 * @param string $text テキスト
-	 * @return number[] [width,height]
 	 */
-	public function get_text_size($font_point_size,$font_name,$text){
+	public function get_text_size(float $font_point_size, string $font_name, string $text): array{
 		$draw = $this->get_text_draw($font_point_size, $font_name);
 		$metrics = $this->image->queryFontMetrics($draw,$text);
 		$w = $metrics['textWidth'];
@@ -452,7 +368,7 @@ class Imagick{
 		return [$w,$h];
 	}
 	
-	private function get_text_draw($font_point_size,$font_name){
+	private function get_text_draw(float $font_point_size, string $font_name): \ImagickDraw{
 		if(!isset(self::$font_path[$font_name])){
 			throw new \tt\image\exception\UndefinedException('undefined font `'.$font_name.'`');
 		}
@@ -467,20 +383,18 @@ class Imagick{
 
 	/**
 	 * 画像の情報
-	 *  integer width
-	 *  integer height
-	 *  integer orientation 画像の向き 1: PORTRAIT, 2: LANDSCAPE, 3: SQUARE
+	 *  int width
+	 *  int height
+	 *  int orientation 画像の向き 1: PORTRAIT, 2: LANDSCAPE, 3: SQUARE
 	 *  string mime 画像形式のMIMEタイプ
-	 *  integer bits
-	 *  integer channels 1: GRAY, 3: RGB, 4: CMYK
-	 *  boolean broken 画像ファイルとして破損しているか
+	 *  int bits
+	 *  int channels 1: GRAY, 3: RGB, 4: CMYK
+	 *  bool broken 画像ファイルとして破損しているか
 	 *  
-	 * @param string $filename
-	 * @return mixed{}
 	 * @see http://jp2.php.net/manual/ja/function.getimagesize.php
 	 * @see http://jp2.php.net/manual/ja/function.image-type-to-mime-type.php
 	 */
-	public static function get_info($filename){
+	public static function get_info(string $filename): array{
 		if(!is_file($filename)){
 			throw new \tt\image\exception\AccessDeniedException($filename.' not found');
 		}
@@ -507,7 +421,7 @@ class Imagick{
 		];
 	}
 
-	private static function check_file_type($filename,$header,$footer){
+	private static function check_file_type(string $filename, string $header, string $footer): array{
 		$fp = fopen($filename,'rb');
 		$a = unpack('H*',fread($fp,$header));
 		fseek($fp,$footer * -1,SEEK_END);
@@ -516,7 +430,7 @@ class Imagick{
 		return [($a[1] ?? null),($b[1] ?? null)];
 	}
 	
-	private static function judge_orientation($w,$h){
+	private static function judge_orientation(float $w, float $h): ?int{
 		if($w > 0 && $h > 0){
 			$d = $h / $w;
 			

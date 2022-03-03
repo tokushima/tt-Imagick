@@ -1,10 +1,6 @@
 <?php
 namespace tt\image;
-/**
- * バーコード
- * @author tokushima
- *
- */
+
 class Barcode{
 	public $data = [];
 	public $type = [];
@@ -12,7 +8,7 @@ class Barcode{
 	public $bar_height;
 	public $module_width;
 	
-	public function __construct($data, $type, $bar_height, $module_width){
+	public function __construct(array $data, array $type, float $bar_height, float $module_width){
 		$this->data = $data;
 		$this->type = $type;
 		$this->bar_height = \tt\image\Calc::mm2px($bar_height);
@@ -21,11 +17,9 @@ class Barcode{
 	
 	/**
 	 * NW-7 (CODABAR)
-	 * @param string $code A0123456789A
-	 * @throws \tt\image\exception\InvalidArgumentException
-	 * @return $this
+	 * A0123456789A
 	 */
-	public static function NW7($code){
+	public static function NW7(string $code): self{
 		if(!preg_match('/^[0123456789ABCD\-\$:\/\.\+]+$/i',$code)){
 			throw new \tt\image\exception\InvalidArgumentException('detected invalid characters');
 		}
@@ -65,12 +59,10 @@ class Barcode{
 	}
 	
 	/**
-	 * EAN13 (JAN13) 4549995186550
-	 * @param string $code
-	 * @throws \tt\image\exception\InvalidArgumentException
-	 * @return $this
+	 * EAN13 (JAN13) 
+	 * 4549995186550
 	 */
-	public static function EAN13($code){
+	public static function EAN13(string $code): self{
 		$get_checkdigit_JAN = function($code){
 			$odd = $even = 0;
 			for($i=0;$i<12;$i+=2){
@@ -135,11 +127,9 @@ class Barcode{
 	
 	/**
 	 * CODE39
-	 * @param string $code 1234567890ABCDEF
-	 * @throws \tt\image\exception\InvalidArgumentException
-	 * @return $this
+	 * 1234567890ABCDEF
 	 */	
-	public static function CODE39($code){
+	public static function CODE39(string $code): self{
 		if(!preg_match('/^[\w\-\. \$\/\+%]+$/i',$code)){
 			throw new \tt\image\exception\InvalidArgumentException('detected invalid characters');
 		}
@@ -170,13 +160,12 @@ class Barcode{
 	}
 	
 	/**
-	 * 郵便カスタマーバーコードード
-	 * @param string $zip 1050011
-	 * @param string $address ４丁目２−８ （町域以降の住所）
-	 * @return $this
+	 * 郵便カスタマーバーコード
+	 * 1050011
+	 * addressは４丁目２−８ （町域以降の住所）
 	 * @see https://www.post.japanpost.jp/zipcode/zipmanual/index.html
 	 */
-	public static function CustomerBarcode($zip,$address=''){
+	public static function CustomerBarcode(string $zip, string $address=''): self{
 		$data = $type = [];
 		// CC1=!, CC2=#, CC3=%, CC4=@, CC5=(, CC6=), CC7=[, CC8=]
 		
@@ -273,7 +262,7 @@ class Barcode{
 		return new static([$data], [$type], 3.6, 0.6);
 	}
 	
-	public function bar_type($i,$j){
+	public function bar_type(float $i, float $j): array{
 		if(!empty($this->type)){
 			$div_bar = $this->bar_height / 3;
 
@@ -294,15 +283,14 @@ class Barcode{
 
 	/**
 	 * 画像を出力
-	 * @param array $opt
 	 * 
 	 * opt:
 	 * 	string $color #000000
 	 *  string $bgcolor #FFFFFF
-	 * 	number $bar_height バーコードの高さ
-	 * 	number $module_width 1モジュールの幅
+	 * 	float $bar_height バーコードの高さ
+	 * 	float $module_width 1モジュールの幅
 	 */
-	public function write($filename, $opt=[]){
+	public function write(string $filename, array $opt=[]): string{
 		if(isset($opt['bar_height'])){
 			$this->bar_height = $opt['bar_height'];
 		}
