@@ -5,6 +5,10 @@ class Imagick{
 	const ORIENTATION_PORTRAIT = 1;
 	const ORIENTATION_LANDSCAPE = 2;
 	const ORIENTATION_SQUARE = 3;
+
+	const CHANNELS_GRAY = 1;
+	const CHANNELS_RGB = 3;
+	const CHANNELS_CMYK = 4;	
 	
 	private static $font_path = [];
 	private $image;

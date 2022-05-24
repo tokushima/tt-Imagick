@@ -296,7 +296,7 @@ class Barcode{
 		}
 		
 		$bgcolor = $opt['bgcolor'] ?? null;
-		$color = $opt['color'] ?? '#000000';
+		$color = $opt['color'] ?? '000000';
 
 		$color2rgb = function($color_code){
 			if(substr($color_code,0,1) == '#'){
@@ -319,7 +319,7 @@ class Barcode{
 		$alpha = 0;
 		
 		if(empty($bgcolor)){
-			$bgcolor = '#FF0000';
+			$bgcolor = 'FFFFFF';
 			imagealphablending($canvas, false);
 			imagesavealpha($canvas, true);
 			$alpha = 127;
