@@ -148,24 +148,28 @@ class Imagick{
 	/**
 	 * 画像のサイズを変更する
 	 */
-	public function resize(?int $width, ?int $height=null): self{
-		list($w,$h) = $this->get_size();
-		$rw = empty($width) ? 1 : $width;
-		$rh = empty($height) ? 1 : $height;
-		
-		if(!empty($width) && !empty($height)){
-			$aw = $rw / $w;
-			$ah = $rh / $h;
-			$a = max($aw,$ah);
-		}else if(!isset($height)){
-			$a = $rw / $w;
+	public function resize(?int $width, ?int $height=null, bool $fit=true): self{
+		if(!empty($width) && !empty($height) && $fit === false){
+			$this->image->scaleImage($width, $height, false);
 		}else{
-			$a = $rh / $h;
+			[$w, $h] = $this->get_size();
+			$rw = empty($width) ? 1 : $width;
+			$rh = empty($height) ? 1 : $height;
+			
+			if(!empty($width) && !empty($height)){
+				$aw = $rw / $w;
+				$ah = $rh / $h;
+				$a = max($aw,$ah);
+			}else if(!isset($height)){
+				$a = $rw / $w;
+			}else{
+				$a = $rh / $h;
+			}
+			$cw = $w * $a;
+			$ch = $h * $a;
+			
+			$this->image->scaleImage($cw, $ch);
 		}
-		$cw = $w * $a;
-		$ch = $h * $a;
-		
-		$this->image->scaleImage($cw,$ch);
 		
 		return $this;
 	}
