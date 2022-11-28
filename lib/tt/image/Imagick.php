@@ -122,7 +122,7 @@ class Imagick{
 	 * 画像の一部を抽出する
 	 */
 	public function crop(int $width, int $height, ?int $x=null, ?int $y=null): self{
-		list($w,$h) = $this->get_size();
+		[$w, $h] = $this->get_size();
 		
 		if($width >= $w && $height >= $h){
 			return $this;
@@ -132,7 +132,7 @@ class Imagick{
 			$x = ($w - $width) / 2;
 			$y = ($h - $height) / 2;
 			
-			list($x,$y) = [($x >= 0) ? $x : 0,($y >= 0) ? $y : 0];
+			[$x, $y] = [($x >= 0) ? $x : 0,($y >= 0) ? $y : 0];
 		}
 		if($x < 0){
 			$x = $w + $x;
@@ -168,7 +168,7 @@ class Imagick{
 			$cw = $w * $a;
 			$ch = $h * $a;
 			
-			$this->image->scaleImage($cw, $ch);
+			$this->image->scaleImage((int)$cw, (int)$ch);
 		}
 		
 		return $this;
@@ -221,7 +221,7 @@ class Imagick{
 	 * 画像の向き
 	 */
 	public function get_orientation(): int{
-		list($w,$h) = $this->get_size();
+		[$w,$h] = $this->get_size();
 		
 		$d = $h / $w;
 		
