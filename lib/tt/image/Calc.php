@@ -40,32 +40,32 @@ class Calc{
 	/**
 	 * mm -> pixel
 	 */
-	public static function mm2px(float $mm, float $dpi=72): float{
+	public static function mm2px(float $mm, float $dpi=72): int{
 		$x = ($mm / 25.4 * $dpi);
-		return ceil($x);
+		return (int)ceil($x);
 	}
 	
 	/**
 	 * pixel -> point
 	 */
-	public static function px2pt(float $px, float $dpi=72): float{
+	public static function px2pt(int $px, float $dpi=72): float{
 		return ($px / $dpi * 72);
 	}
 	
 	/**
 	 * point -> pixel
 	 */
-	public static function pt2px(float $pt, float $dpi=72): float{
+	public static function pt2px(float $pt, float $dpi=72): int{
 		$x = ($pt / 72 * $dpi);
-		return ceil($x);
+		return (int)ceil($x);
 	}
 	
 	/**
 	 * pixel -> dpi
 	 */
-	public static function px2dpi(float $px, float $mm, float $precision=0): float{
+	public static function px2dpi(int $px, float $mm, int $precision=0): float{
 		$dpi = ($px / $mm * 25.4);
-		return (!empty($precision)) ? round($dpi,$precision) : $dpi;
+		return (!empty($precision)) ? round($dpi, $precision) : $dpi;
 	}
 	
 	/**

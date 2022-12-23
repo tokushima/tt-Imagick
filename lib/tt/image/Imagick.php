@@ -11,7 +11,7 @@ class Imagick{
 	const CHANNELS_CMYK = 4;	
 	
 	private static $font_path = [];
-	private $image;
+	private \Imagick $image;
 	
 	public function __construct(string $filename){
 		if($filename != __FILE__){
@@ -63,7 +63,7 @@ class Imagick{
 	 * ファイルに書き出す
 	 * format: png, gif, jpeg
 	 */
-	public function write(string $filename, ?string $format=null): void{
+	public function write(string $filename, string $format=''): void{
 		if(!empty($format)){
 			$this->image->setImageFormat($format);
 		}
@@ -129,8 +129,8 @@ class Imagick{
 		}
 		
 		if($x === null || $y === null){
-			$x = ($w - $width) / 2;
-			$y = ($h - $height) / 2;
+			$x = ceil(($w - $width) / 2);
+			$y = ceil(($h - $height) / 2);
 			
 			[$x, $y] = [($x >= 0) ? $x : 0,($y >= 0) ? $y : 0];
 		}
@@ -165,8 +165,8 @@ class Imagick{
 			}else{
 				$a = $rh / $h;
 			}
-			$cw = $w * $a;
-			$ch = $h * $a;
+			$cw = ceil($w * $a);
+			$ch = ceil($h * $a);
 			
 			$this->image->scaleImage((int)$cw, (int)$ch);
 		}
@@ -196,7 +196,7 @@ class Imagick{
 	 * マージ
 	 * @see https://www.php.net/manual/ja/imagick.constants.php
 	 */
-	public function merge(int $x, int $y, \tt\image\Imagick $imagick, int $composite=\Imagick::COMPOSITE_OVER): self{
+	public function merge(int $x, int $y, self $imagick, int $composite=\Imagick::COMPOSITE_OVER): self{
 		$this->image->compositeImage(
 			$imagick->image,
 			$composite,
@@ -221,7 +221,7 @@ class Imagick{
 	 * 画像の向き
 	 */
 	public function get_orientation(): int{
-		[$w,$h] = $this->get_size();
+		[$w, $h] = $this->get_size();
 		
 		$d = $h / $w;
 		
@@ -265,7 +265,7 @@ class Imagick{
 		$draw->setFillColor(new \ImagickPixel($color));
 		
 		foreach($xys as $xy){
-			$draw->point($xy[0],$xy[1]);
+			$draw->point($xy[0], $xy[1]);
 		}
 		$this->image->drawImage($draw);
 		
@@ -279,8 +279,8 @@ class Imagick{
 	 * alpha: 0〜127 (透明) PNGでのみ有効
 	 */
 	public function rectangle(int $x, int $y, int $width, int $height, string $color, float $thickness=1, bool $fill=false, int $alpha=0): self{
-		$draw = $this->get_draw($color,$thickness,$fill,$alpha);
-		$draw->rectangle($x,$y,$x + $width,$y + $height);
+		$draw = $this->get_draw($color, $thickness, $fill, $alpha);
+		$draw->rectangle($x, $y, $x + $width, $y + $height);
 		$this->image->drawImage($draw);
 		
 		return $this;
@@ -290,9 +290,9 @@ class Imagick{
 	 * thickness: 線の太さ
 	 * alpha: 0〜127 (透明) PNGでのみ有効
 	 */
-	public function line(int $sx, int $sy, int $ex, int $ey, string $color, float $thickness=1, int $alpha=0){
-		$draw = $this->get_draw($color,$thickness,false,$alpha);
-		$draw->line($sx,$sy,$ex,$ey);
+	public function line(int $sx, int $sy, int $ex, int $ey, string $color, float $thickness=1, int $alpha=0): self{
+		$draw = $this->get_draw($color, $thickness, false, $alpha);
+		$draw->line($sx, $sy, $ex, $ey);
 		$this->image->drawImage($draw);
 		
 		return $this;
@@ -438,7 +438,7 @@ class Imagick{
 		return [($a[1] ?? null),($b[1] ?? null)];
 	}
 	
-	private static function judge_orientation(float $w, float $h): ?int{
+	private static function judge_orientation(float $w, float $h): int{
 		if($w > 0 && $h > 0){
 			$d = $h / $w;
 			
@@ -449,7 +449,7 @@ class Imagick{
 			}
 			return self::ORIENTATION_LANDSCAPE;
 		}
-		return null;
+		return 0;
 	}
 
 }
