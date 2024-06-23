@@ -12,6 +12,7 @@ class Imagick{
 	
 	private static $font_path = [];
 	private \Imagick $image;
+	private int $dpi = 72;
 	
 	public function __construct(string $filename){
 		if($filename != __FILE__){
@@ -57,6 +58,14 @@ class Imagick{
 	
 	public function image(): \Imagick{
 		return $this->image;
+	}
+
+	/**
+	 * dpiを設定する
+	 */
+	public function set_dpi(int $dpi): void{
+		$this->dpi = $dpi;
+		$this->image->setResolution($this->dpi, $this->dpi);
 	}
 
 	/**
@@ -140,7 +149,7 @@ class Imagick{
 		if($y < 0){
 			$y = $h + $y;
 		}
-		$this->image->cropImage($width,$height,$x,$y);
+		$this->image->cropImage($width, $height, $x, $y);
 		
 		return $this;
 	}
@@ -187,7 +196,7 @@ class Imagick{
 	 * 回転
 	 */
 	public function rotate(int $angle, string $background_color='#000000'): self{
-		$this->image->rotateImage($background_color,$angle);
+		$this->image->rotateImage($background_color, $angle);
 
 		return $this;
 	}
@@ -214,7 +223,7 @@ class Imagick{
 		$w = $this->image->getImageWidth();
 		$h = $this->image->getImageHeight();
 		
-		return [$w,$h];
+		return [$w, $h];
 	}
 	
 	/**
@@ -305,8 +314,8 @@ class Imagick{
 	 * alpha: 0〜127 (透明) PNGでのみ有効
 	 */
 	public function ellipse(int $cx, int $cy, int $width, int $height, string $color, float $thickness=1, bool $fill=false, int $alpha=0): self{
-		$draw = $this->get_draw($color,$thickness/2,$fill,$alpha);
-		$draw->ellipse($cx,$cy,$width/2,$height/2,0,360);
+		$draw = $this->get_draw($color, $thickness/2, $fill, $alpha);
+		$draw->ellipse($cx, $cy, $width/2, $height/2, 0, 360);
 		$this->image->drawImage($draw);
 		
 		return $this;
@@ -352,35 +361,85 @@ class Imagick{
 	/**
 	 * テキストを画像に書き込む
 	 */
-	public function text(int $x, int $y, string $font_color, float $font_point_size, string $font_name, string $text): self{
-		$font_point_size = ceil($font_point_size);
-		
+	public function text(int $x, int $y, string $font_color, float $font_point_size, string $font_name, string $text, array $opt=[]): self{
+		$values = explode("\n", str_replace("\r\n", "\n", $text));
+
 		$draw = $this->get_text_draw($font_point_size, $font_name);
-		$draw->setStrokeColor(new \ImagickPixel($font_color));
 		$draw->setFillColor(new \ImagickPixel($font_color));
-		$draw->annotation($x,$y + $font_point_size,$text);
-		
+
+		if(isset($opt['stroke_color'])){
+			$draw->setStrokeWidth($opt['stroke_width'] ?? 0.1);
+			$draw->setStrokeColor(new \ImagickPixel($opt['stroke_color']));
+		}
+
+		$rotate = $opt['rotate'] ?? 0;
+		if($rotate !== 0){
+			$draw->rotate($rotate);
+		}
+
+		$tracking = \tt\image\Calc::pt2px($opt['tracking'] ?? 0, $this->dpi);
+		if($tracking !== 0){
+			$draw->setTextKerning($tracking);
+		}
+		$leading = \tt\image\Calc::pt2px($opt['leading'] ?? 0, $this->dpi);
+
+		if($leading === 0){
+			$text_metrics = $this->image->queryFontMetrics($draw, $text);
+			$text_height = $text_metrics['textHeight'];
+		}else{
+			$text_height = $leading * sizeof($values);
+		}
+
+		$box_width = \tt\image\Calc::pt2px($opt['width'] ?? 0, $this->dpi);
+		$box_height = \tt\image\Calc::pt2px($opt['height'] ?? 0, $this->dpi);
+		$box_align = $opt['align'] ?? 0;
+		$box_valign = $opt['valign'] ?? 0;
+
+		if($box_height !== 0){
+			if($box_valign === 1){
+				$y = $y + ($box_height - $text_height) / 2;
+			}else if($box_valign === 2){
+				$y = $y + $box_height - $text_height;
+			}
+		}
+
+		foreach($values as $value){
+			$value_height = ($leading > 0) ? $leading : $this->image->queryFontMetrics($draw, $value)['textHeight'];
+			$vx = $x;
+			$vy = $y + $value_height;
+
+			if($box_align !== 0 && $box_width !== 0){
+				if($box_align === 1){
+					$vx = $vx + ($box_width / 2);
+					$draw->setTextAlignment(\Imagick::ALIGN_CENTER);
+				}else if($box_align === 2){
+					$vx = $vx + $box_width;
+					$draw->setTextAlignment(\Imagick::ALIGN_RIGHT);
+				}
+			}
+			$draw->annotation($vx, $vy, $value);
+			$y += $value_height;
+		}
 		$this->image->drawImage($draw);
 		return $this;
 	}
-	
+
 	/**
 	 * テキストの幅と高さ
 	 */
 	public function get_text_size(float $font_point_size, string $font_name, string $text): array{
 		$draw = $this->get_text_draw($font_point_size, $font_name);
-		$metrics = $this->image->queryFontMetrics($draw,$text);
+		$metrics = $this->image->queryFontMetrics($draw, $text);
 		$w = $metrics['textWidth'];
 		$h = $metrics['textHeight'];
 		
-		return [$w,$h];
+		return [$w, $h];
 	}
 	
 	private function get_text_draw(float $font_point_size, string $font_name): \ImagickDraw{
 		if(!isset(self::$font_path[$font_name])){
 			throw new \tt\image\exception\UndefinedException('undefined font `'.$font_name.'`');
 		}
-		$font_point_size = ceil($font_point_size * 1.3);
 		
 		$draw = new \ImagickDraw();
 		$draw->setFont(self::$font_path[$font_name]);
@@ -421,7 +480,7 @@ class Imagick{
 		return [
 			'width'=>$info[0],
 			'height'=>$info[1],
-			'orientation'=>self::judge_orientation($info[0],$info[1]),
+			'orientation'=>self::judge_orientation($info[0], $info[1]),
 			'mime'=>$mime,
 			'bits'=>$info['bits'] ?? null,
 			'channels'=>$info['channels'] ?? null,
@@ -430,10 +489,10 @@ class Imagick{
 	}
 
 	private static function check_file_type(string $filename, string $header, string $footer): array{
-		$fp = fopen($filename,'rb');
-		$a = unpack('H*',fread($fp,$header));
-		fseek($fp,$footer * -1,SEEK_END);
-		$b = unpack('H*',fread($fp,$footer));
+		$fp = fopen($filename, 'rb');
+		$a = unpack('H*', fread($fp, $header));
+		fseek($fp, $footer * -1, SEEK_END);
+		$b = unpack('H*', fread($fp, $footer));
 		fclose($fp);
 		return [($a[1] ?? null),($b[1] ?? null)];
 	}
