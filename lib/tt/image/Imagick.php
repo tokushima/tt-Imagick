@@ -390,8 +390,8 @@ class Imagick{
 			$text_height = $leading * sizeof($values);
 		}
 
-		$box_width = \tt\image\Calc::pt2px($opt['width'] ?? 0, $this->dpi);
-		$box_height = \tt\image\Calc::pt2px($opt['height'] ?? 0, $this->dpi);
+		$box_width = $opt['width'] ?? 0;
+		$box_height = $opt['height'] ?? 0;
 		$box_align = $opt['align'] ?? 0;
 		$box_valign = $opt['valign'] ?? 0;
 
