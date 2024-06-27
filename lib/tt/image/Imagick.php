@@ -12,7 +12,7 @@ class Imagick{
 	
 	private static $font_path = [];
 	private \Imagick $image;
-	private int $dpi = 72;
+	private int $dpi = 96;
 	
 	public function __construct(string $filename){
 		if($filename != __FILE__){
@@ -385,7 +385,7 @@ class Imagick{
 
 		if($leading === 0){
 			$text_metrics = $this->image->queryFontMetrics($draw, $text);
-			$text_height = $text_metrics['textHeight'];
+			$text_height = $text_metrics['textHeight'] * ($this->dpi / 96);
 		}else{
 			$text_height = $leading * sizeof($values);
 		}
@@ -404,7 +404,7 @@ class Imagick{
 		}
 
 		foreach($values as $value){
-			$value_height = ($leading > 0) ? $leading : $this->image->queryFontMetrics($draw, $value)['textHeight'];
+			$value_height = ($leading > 0) ? $leading : $this->image->queryFontMetrics($draw, $value)['textHeight'] * ($this->dpi / 96);
 			$vx = $x;
 			$vy = $y + $value_height;
 
@@ -510,5 +510,4 @@ class Imagick{
 		}
 		return 0;
 	}
-
 }
