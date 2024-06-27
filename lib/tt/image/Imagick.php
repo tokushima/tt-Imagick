@@ -314,7 +314,7 @@ class Imagick{
 	 * alpha: 0〜127 (透明) PNGでのみ有効
 	 */
 	public function ellipse(int $cx, int $cy, int $width, int $height, string $color, float $thickness=1, bool $fill=false, int $alpha=0): self{
-		$draw = $this->get_draw($color, $thickness/2, $fill, $alpha);
+		$draw = $this->get_draw($color, $thickness, $fill, $alpha);
 		$draw->ellipse($cx, $cy, $width/2, $height/2, 0, 360);
 		$this->image->drawImage($draw);
 		
