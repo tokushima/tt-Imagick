@@ -23,7 +23,14 @@ class Imagick{
 	public function __destruct(){
 		$this->image->clear();
 	}
-	
+
+	/**
+	 * ライブラリのリソース制限を変更します
+	 */
+	public function set_resource_limit(int $resource_type, string $value){
+		$this->image->setResourceLimit($resource_type, $value);
+	}
+
 	/**
 	 * バイナリ文字列から画像を読み込む
 	 */
